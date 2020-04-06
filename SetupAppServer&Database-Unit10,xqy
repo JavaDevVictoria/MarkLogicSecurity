@@ -1,0 +1,35 @@
+(:
+
+1.	Click Run to execute the script.
+2.	"sec-unit-10 app server and databases have been created" should appear in the results window.
+
+Summary: In this script we have created a database called sec-unit-10 serviced by an application server at port 8888.
+ 
+:)
+
+let $config := <rapi:rest-api xmlns:rapi="http://marklogic.com/rest-api">
+  <rapi:name>sec-unit-10</rapi:name>
+  <rapi:group>Default</rapi:group>
+  <rapi:database>sec-unit-10</rapi:database>
+  <rapi:modules-database>sec-Modules</rapi:modules-database>
+  <rapi:port>8888</rapi:port>
+  <rapi:forests-per-host>1</rapi:forests-per-host>
+</rapi:rest-api>
+
+let $options := <options xmlns="xdmp:http">
+   <authentication method="digest">
+     <username>admin</username>
+     <password>admin</password>
+   </authentication>
+   <!-- xdmp.quote() formats the config object as a string so the REST endpoint understands it -->
+   <data>{xdmp:quote($config)}</data>
+   <headers>
+     <content-type>application/xml</content-type>
+   </headers>
+ </options>
+
+let $response := xdmp:http-post('http://localhost:8002/v1/rest-apis?format=xml', $options)
+return if ($response//*:code/string() = "201") then
+  $config//*:name || " app server and databases have been created."
+else
+  $response
